@@ -110,7 +110,7 @@ export default function Admin() {
                     animate={{ opacity: 1, y: 0 }}
                 >
                     <div>
-                        <h1>📊 Admin Dashboard</h1>
+                        <h1>Admin Dashboard</h1>
                         <p>Manage orders and inventory</p>
                     </div>
                     <button

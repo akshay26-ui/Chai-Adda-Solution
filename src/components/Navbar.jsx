@@ -28,7 +28,7 @@ export default function Navbar() {
         { path: '/menu', label: 'Menu', icon: '📜' },
         { path: '/cart', label: 'Cart', icon: '🛒' },
         { path: '/party-order', label: 'Party Order', icon: '🎉' },
-        { path: '/admin', label: 'Admin', icon: '📊' },
+        { path: '/admin', label: 'Admin', icon: '' },
     ];
 
     const handleLogout = () => {
@@ -72,10 +72,10 @@ export default function Navbar() {
                     {/* Auth Section */}
                     {isAuthenticated ? (
                         <div className="nav-user-section">
-                            <div className="nav-user-info">
+                            <Link to="/profile" className="nav-user-info cursor-target" style={{ textDecoration: 'none' }}>
                                 <span className="nav-user-avatar">{user.avatar}</span>
                                 <span className="nav-user-name">{user.name?.split(' ')[0]}</span>
-                            </div>
+                            </Link>
                             <button
                                 className="nav-logout-btn cursor-target"
                                 onClick={handleLogout}

@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
@@ -8,12 +9,32 @@ import './Cart.css';
 export default function Cart() {
     const { items, removeItem, updateQuantity, totalPrice, totalItems, clearCart } = useCart();
     const { addToast } = useToast();
-    const { isAuthenticated, user } = useAuth();
+    const { isAuthenticated, user, addFavorite } = useAuth();
     const navigate = useNavigate();
+    const [isSavingFav, setIsSavingFav] = useState(false);
+    const [favName, setFavName] = useState('');
+
+    const estimatedPrepTime = totalItems > 0 
+        ? items.reduce((total, item) => {
+            const isBeverage = /^b\d+$/.test(item.id);
+            return total + (isBeverage ? 1 : 2) * item.quantity;
+        }, 5)
+        : 0;
 
     const handleRemove = (item) => {
         removeItem(item.id);
         addToast(`${item.name} removed from cart`, 'info');
+    };
+
+    const handleSaveFavorite = () => {
+        if (!favName.trim()) {
+            addToast('Please enter a name for your favorite combo', 'warning');
+            return;
+        }
+        addFavorite(favName, items);
+        addToast('Favorite combo saved! You can quick-reorder from your profile.', 'success');
+        setIsSavingFav(false);
+        setFavName('');
     };
 
     const handleProceedToPayment = () => {
@@ -133,6 +154,10 @@ export default function Cart() {
                                     <span>Tax</span>
                                     <span>₹0</span>
                                 </div>
+                                <div className="summary-row">
+                                    <span>Est. Prep Time</span>
+                                    <span>{estimatedPrepTime} mins</span>
+                                </div>
                                 <div className="summary-divider"></div>
                                 <div className="summary-row summary-total">
                                     <span>Total</span>
@@ -140,6 +165,30 @@ export default function Cart() {
                                 </div>
                             </div>
                             <p className="summary-note">All prices include MRP as displayed</p>
+
+                            {isAuthenticated && items.length > 0 && (
+                                <div className="cart-favorite-section" style={{ marginBottom: '1.5rem' }}>
+                                    {!isSavingFav ? (
+                                        <button className="btn btn-secondary btn-sm cursor-target w-full" onClick={() => setIsSavingFav(true)}>
+                                            ⭐ Save Cart as Favorite
+                                        </button>
+                                    ) : (
+                                        <div className="favorite-input-group" style={{ display: 'flex', gap: '0.5rem', flexDirection: 'column' }}>
+                                            <input 
+                                                type="text" 
+                                                placeholder="e.g. My Usual Chai" 
+                                                value={favName} 
+                                                onChange={(e) => setFavName(e.target.value)} 
+                                                style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--clr-border)', background: 'rgba(255,255,255,0.05)', color: 'white' }}
+                                            />
+                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                <button className="btn btn-primary btn-sm cursor-target" onClick={handleSaveFavorite} style={{ flex: 1 }}>Save</button>
+                                                <button className="btn btn-ghost btn-sm cursor-target" onClick={() => setIsSavingFav(false)} style={{ flex: 1 }}>Cancel</button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
                             {isAuthenticated ? (
                                 <button

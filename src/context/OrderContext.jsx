@@ -13,7 +13,10 @@ const orderReducer = (state, action) => {
                 totalPrice: action.payload.totalPrice,
                 status: 'received',
                 timestamp: new Date().toISOString(),
-                estimatedTime: Math.max(5, action.payload.items.length * 3 + Math.floor(Math.random() * 5)),
+                estimatedTime: action.payload.items.reduce((total, item) => {
+                    const isBeverage = /^b\d+$/.test(item.id);
+                    return total + (isBeverage ? 1 : 2) * item.quantity;
+                }, 5),
                 scheduleInfo: action.payload.scheduleInfo || null,
             };
             return { ...state, orders: [order, ...state.orders], nextToken: nextToken + 1 };

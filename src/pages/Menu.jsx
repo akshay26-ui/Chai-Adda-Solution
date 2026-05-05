@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
 import { useStock } from '../context/StockContext';
+import { useAuth } from '../context/AuthContext';
 import { menuData, categories } from '../data/menuData';
 import './Menu.css';
 
@@ -12,6 +13,7 @@ export default function Menu() {
     const { addItem, items: cartItems } = useCart();
     const { addToast } = useToast();
     const { isInStock, getStock } = useStock();
+    const { isAuthenticated, user, toggleFavoriteItem } = useAuth();
 
     const currentItems = useMemo(() => {
         const items = menuData[activeCategory]?.items || [];
@@ -113,7 +115,28 @@ export default function Menu() {
                                                 transition={{ duration: 0.3, delay: index * 0.03 }}
                                                 whileHover={{ y: outOfStock ? 0 : -4 }}
                                                 layout
+                                                style={{ position: 'relative' }}
                                             >
+                                                {isAuthenticated && (
+                                                    <button 
+                                                        className="favorite-item-btn cursor-target"
+                                                        onClick={(e) => { 
+                                                            e.stopPropagation(); 
+                                                            toggleFavoriteItem(item);
+                                                            addToast((user?.favoriteItems || []).some(i => i.id === item.id) ? 'Removed from favorites' : 'Added to favorites', 'success');
+                                                        }}
+                                                        style={{ 
+                                                            position: 'absolute', top: '10px', right: '10px', zIndex: 10, 
+                                                            background: 'rgba(0,0,0,0.4)', border: 'none', borderRadius: '50%', 
+                                                            width: '32px', height: '32px', display: 'flex', alignItems: 'center', 
+                                                            justifyContent: 'center', fontSize: '1.2rem', cursor: 'pointer',
+                                                            color: (user?.favoriteItems || []).some(i => i.id === item.id) ? 'gold' : 'rgba(255,255,255,0.7)',
+                                                            backdropFilter: 'blur(4px)'
+                                                        }}
+                                                    >
+                                                        {(user?.favoriteItems || []).some(i => i.id === item.id) ? '★' : '☆'}
+                                                    </button>
+                                                )}
                                                 <div className="card-image-bg">
                                                 {item.image ? (
                                                     <img src={item.image} alt={item.name} loading="lazy" />

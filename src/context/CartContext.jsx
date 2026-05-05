@@ -42,6 +42,8 @@ const cartReducer = (state, action) => {
                 ),
             };
         }
+        case 'SET_CART':
+            return { ...state, items: action.payload, scheduleInfo: null };
         case 'CLEAR_CART':
             return { ...state, items: [], scheduleInfo: null };
         case 'SET_SCHEDULE_INFO':
@@ -66,6 +68,10 @@ export function CartProvider({ children }) {
 
     const updateQuantity = useCallback((id, quantity) => {
         dispatch({ type: 'UPDATE_QUANTITY', payload: { id, quantity } });
+    }, []);
+
+    const setCart = useCallback((items) => {
+        dispatch({ type: 'SET_CART', payload: items });
     }, []);
 
     const clearCart = useCallback(() => {
@@ -98,6 +104,7 @@ export function CartProvider({ children }) {
                 addItem,
                 removeItem,
                 updateQuantity,
+                setCart,
                 clearCart,
                 setScheduleInfo,
                 clearScheduleInfo,

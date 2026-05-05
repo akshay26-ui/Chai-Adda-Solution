@@ -17,6 +17,7 @@ import Token from './pages/Token';
 import Admin from './pages/Admin';
 import PartyOrder from './pages/PartyOrder';
 import Auth from './pages/Auth';
+import Profile from './pages/Profile';
 
 
 function AppRoutes() {
@@ -32,6 +33,7 @@ function AppRoutes() {
         <Route path="/party-order" element={<PartyOrder />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/profile" element={<Profile />} />
       </Routes>
     </AnimatePresence>
   );

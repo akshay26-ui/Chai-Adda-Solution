@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 import { useCart } from '../context/CartContext';
 import { useOrders } from '../context/OrderContext';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useStock } from '../context/StockContext';
 import './Payment.css';
@@ -13,6 +14,7 @@ export default function Payment() {
     const { addOrder } = useOrders();
     const { addToast } = useToast();
     const { decrementStock } = useStock();
+    const { addToOrderHistory, isAuthenticated } = useAuth();
     const navigate = useNavigate();
     const [stage, setStage] = useState('qr'); // qr, processing, success
     const [progress, setProgress] = useState(0);
@@ -57,6 +59,13 @@ export default function Payment() {
                     decrementStock(item.id, item.quantity);
                 });
                 addOrder(items, totalPrice, scheduleInfo);
+                if (isAuthenticated) {
+                    addToOrderHistory({
+                        items: savedItemsRef.current,
+                        totalPrice: savedPriceRef.current,
+                        scheduleInfo
+                    });
+                }
                 clearCart();
                 addToast(scheduleInfo?.isPartyOrder ? 'Party order scheduled! 🎉' : 'Payment successful! 🎉', 'success');
             }, 400);

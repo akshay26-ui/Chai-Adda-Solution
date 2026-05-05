@@ -122,7 +122,14 @@
     position: relative;
 }
 
-.token-time {
+.token-time-container {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 1rem;
+}
+
+.token-time, .token-queue-info {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -130,14 +137,14 @@
     position: relative;
 }
 
-.time-label {
+.time-label, .queue-label {
     font-size: 0.8rem;
     color: var(--clr-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.08em;
 }
 
-.time-value {
+.time-value, .queue-value {
     font-family: var(--font-heading);
     font-size: 2rem;
     font-weight: 700;

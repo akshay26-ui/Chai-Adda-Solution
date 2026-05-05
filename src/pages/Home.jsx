@@ -1,6 +1,9 @@
 import { useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
+import { useToast } from '../context/ToastContext';
 import './Home.css';
 
 const features = [
@@ -11,16 +14,31 @@ const features = [
 ];
 
 const popularItems = [
-    { name: 'Masala Tea', price: '₹20', emoji: '🍵' },
-    { name: 'Cold Coffee', price: '₹60', emoji: '🧋' },
-    { name: 'Cheese Maggi', price: '₹50', emoji: '🧀' },
-    { name: 'Crispy Paneer Burger', price: '₹99', emoji: '🍔' },
-    { name: 'Peri Peri Fries', price: '₹90', emoji: '🍟' },
-    { name: 'Paneer Momo', price: '₹99', emoji: '🥟' },
+    { id: 'b1', name: 'Masala Tea', price: 20, emoji: '🍵' },
+    { id: 'b2', name: 'Cold Coffee', price: 60, emoji: '🧋' },
+    { id: 'm1', name: 'Cheese Maggi', price: 50, emoji: '🧀' },
+    { id: 's2', name: 'Crispy Paneer Burger', price: 99, emoji: '🍔' },
+    { id: 's3', name: 'Peri Peri Fries', price: 90, emoji: '🍟' },
+    { id: 'f2', name: 'Paneer Momo', price: 99, emoji: '🥟' },
 ];
 
 export default function Home() {
     const heroRef = useRef(null);
+    const { isAuthenticated, user, getRecommendations, toggleFavoriteItem } = useAuth();
+    const { setCart } = useCart();
+    const { addToast } = useToast();
+    const navigate = useNavigate();
+
+    const handleQuickReorder = (items) => {
+        setCart(items);
+        addToast('Favorite added to cart!', 'success');
+        navigate('/cart');
+    };
+
+    const recommendations = isAuthenticated ? getRecommendations() : [];
+    const displayItems = recommendations.length >= 3 ? recommendations.slice(0, 6) : popularItems;
+    const isShowingPersonalized = recommendations.length >= 3;
+    const favorites = isAuthenticated && user?.favorites ? user.favorites : [];
 
     useEffect(() => {
         const handleMouseMove = (e) => {
@@ -163,6 +181,24 @@ export default function Home() {
             {/* Popular Items Section */}
             <section className="popular-section">
                 <div className="container">
+                    {favorites.length > 0 && (
+                        <motion.div 
+                            className="quick-reorder-banner glass-strong"
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true, margin: '-100px' }}
+                            style={{ padding: '1.5rem', borderRadius: 'var(--radius-lg)', marginBottom: '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}
+                        >
+                            <div>
+                                <h3 style={{ margin: 0, color: 'var(--clr-accent)' }}>⭐ Quick Reorder</h3>
+                                <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.9rem', color: 'var(--clr-text-secondary)' }}>Grab your usual: <strong>{favorites[0].name}</strong></p>
+                            </div>
+                            <button className="btn btn-primary cursor-target" onClick={() => handleQuickReorder(favorites[0].items)}>
+                                ⚡ 1-Tap Order
+                            </button>
+                        </motion.div>
+                    )}
+
                     <motion.div
                         className="section-header"
                         initial={{ opacity: 0, y: 30 }}
@@ -170,24 +206,45 @@ export default function Home() {
                         viewport={{ once: true, margin: '-100px' }}
                         transition={{ duration: 0.6 }}
                     >
-                        <span className="section-tag">Fan Favorites</span>
-                        <h2>Popular at Chai Adda</h2>
+                        <span className="section-tag">{isShowingPersonalized ? 'Just For You' : 'Fan Favorites'}</span>
+                        <h2>{isShowingPersonalized ? 'Recommended Based on Your Orders' : 'Popular at Chai Adda'}</h2>
                     </motion.div>
 
                     <div className="popular-grid">
-                        {popularItems.map((item, index) => (
+                        {displayItems.map((item, index) => (
                             <motion.div
-                                key={item.name}
+                                key={item.id}
                                 className="popular-card cursor-target"
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 whileInView={{ opacity: 1, scale: 1 }}
                                 viewport={{ once: true, margin: '-50px' }}
                                 transition={{ duration: 0.4, delay: index * 0.08 }}
                                 whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
+                                style={{ position: 'relative' }}
                             >
+                                {isAuthenticated && (
+                                    <button 
+                                        className="favorite-item-btn cursor-target"
+                                        onClick={(e) => { 
+                                            e.stopPropagation(); 
+                                            toggleFavoriteItem(item);
+                                            addToast((user?.favoriteItems || []).some(i => i.id === item.id) ? 'Removed from favorites' : 'Added to favorites', 'success');
+                                        }}
+                                        style={{ 
+                                            position: 'absolute', top: '10px', right: '10px', zIndex: 10, 
+                                            background: 'rgba(0,0,0,0.4)', border: 'none', borderRadius: '50%', 
+                                            width: '32px', height: '32px', display: 'flex', alignItems: 'center', 
+                                            justifyContent: 'center', fontSize: '1.2rem', cursor: 'pointer',
+                                            color: (user?.favoriteItems || []).some(i => i.id === item.id) ? 'gold' : 'rgba(255,255,255,0.7)',
+                                            backdropFilter: 'blur(4px)'
+                                        }}
+                                    >
+                                        {(user?.favoriteItems || []).some(i => i.id === item.id) ? '★' : '☆'}
+                                    </button>
+                                )}
                                 <span className="popular-emoji">{item.emoji}</span>
                                 <h4>{item.name}</h4>
-                                <span className="popular-price">{item.price}</span>
+                                <span className="popular-price">₹{item.price}</span>
                             </motion.div>
                         ))}
                     </div>

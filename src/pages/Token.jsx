@@ -11,7 +11,7 @@ const statusSteps = [
 ];
 
 export default function Token() {
-    const { getLatestOrder } = useOrders();
+    const { getLatestOrder, orders } = useOrders();
     const [order, setOrder] = useState(null);
     const [elapsed, setElapsed] = useState(0);
 
@@ -42,6 +42,11 @@ export default function Token() {
             </div>
         );
     }
+
+    const currentOrderIndex = orders.findIndex(o => o.id === order.id);
+    const ordersAhead = currentOrderIndex !== -1 
+        ? orders.slice(currentOrderIndex + 1).filter(o => o.status === 'received' || o.status === 'preparing').length
+        : 0;
 
     const statusIndex = statusSteps.findIndex((s) => s.key === order.status);
     const remainingTime = Math.max(0, order.estimatedTime * 60 - elapsed);
@@ -83,11 +88,17 @@ export default function Token() {
                                 <span className="schedule-contact">👤 {order.scheduleInfo.name} · {order.scheduleInfo.phone}</span>
                             </div>
                         ) : (
-                            <div className="token-time">
-                                <span className="time-label">Estimated Wait</span>
-                                <span className="time-value">
-                                    {mins}:{secs.toString().padStart(2, '0')}
-                                </span>
+                            <div className="token-time-container">
+                                <div className="token-time">
+                                    <span className="time-label">Estimated Wait</span>
+                                    <span className="time-value">
+                                        {mins}:{secs.toString().padStart(2, '0')}
+                                    </span>
+                                </div>
+                                <div className="token-queue-info">
+                                    <span className="queue-label">Orders Ahead</span>
+                                    <span className="queue-value">{ordersAhead}</span>
+                                </div>
                             </div>
                         )}
                     </motion.div>

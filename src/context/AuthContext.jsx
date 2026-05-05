@@ -82,10 +82,22 @@ export function AuthProvider({ children }) {
             provider: 'email',
             avatar: name.trim().charAt(0).toUpperCase(),
             createdAt: new Date().toISOString(),
+            favorites: [
+                {
+                    id: `fav_${Date.now()}`,
+                    name: 'My Usual: 2 Chai + Momos',
+                    items: [
+                        { id: 'b1', name: 'Masala Tea', price: 20, emoji: '🍵', quantity: 2 },
+                        { id: 'f2', name: 'Paneer Momo', price: 99, emoji: '🥟', quantity: 1 }
+                    ]
+                }
+            ],
+            favoriteItems: [],
+            orderHistory: []
         };
 
         setUsers((prev) => [...prev, newUser]);
-        setUser({ id: newUser.id, name: newUser.name, email: newUser.email, provider: 'email', avatar: newUser.avatar });
+        setUser(newUser);
         return { success: true };
     }, [users]);
 
@@ -97,7 +109,21 @@ export function AuthProvider({ children }) {
             return { success: false, error: 'Invalid email or password' };
         }
 
-        setUser({ id: found.id, name: found.name, email: found.email, provider: 'email', avatar: found.avatar });
+        setUser({ 
+            ...found, 
+            favorites: found.favorites || [
+                {
+                    id: 'dummy_fav_1',
+                    name: 'My Usual: 2 Chai + Momos',
+                    items: [
+                        { id: 'b1', name: 'Masala Tea', price: 20, emoji: '🍵', quantity: 2 },
+                        { id: 'f2', name: 'Paneer Momo', price: 99, emoji: '🥟', quantity: 1 }
+                    ]
+                }
+            ], 
+            favoriteItems: found.favoriteItems || [],
+            orderHistory: found.orderHistory || [] 
+        });
         return { success: true };
     }, [users]);
 
@@ -109,6 +135,18 @@ export function AuthProvider({ children }) {
             email: googleUser.email,
             provider: 'google',
             avatar: googleUser.name.charAt(0).toUpperCase(),
+            favorites: [
+                {
+                    id: `fav_${Date.now()}`,
+                    name: 'My Usual: 2 Chai + Momos',
+                    items: [
+                        { id: 'b1', name: 'Masala Tea', price: 20, emoji: '🍵', quantity: 2 },
+                        { id: 'f2', name: 'Paneer Momo', price: 99, emoji: '🥟', quantity: 1 }
+                    ]
+                }
+            ],
+            favoriteItems: [],
+            orderHistory: []
         };
 
         // Add to users if not existing
@@ -118,13 +156,67 @@ export function AuthProvider({ children }) {
             return prev;
         });
 
-        setUser(newUser);
+        setUser((prevUser) => {
+            const existing = users.find((u) => u.email === newUser.email);
+            return existing ? { ...existing, favorites: existing.favorites || [], favoriteItems: existing.favoriteItems || [], orderHistory: existing.orderHistory || [] } : newUser;
+        });
         return { success: true };
     }, []);
 
     const logout = useCallback(() => {
         setUser(null);
     }, []);
+
+    const updateUserProfile = useCallback((updates) => {
+        if (!user) return;
+        const updatedUser = { ...user, ...updates };
+        setUser(updatedUser);
+        setUsers(prev => prev.map(u => u.id === user.id ? { ...u, ...updates } : u));
+    }, [user]);
+
+    const addFavorite = useCallback((name, items) => {
+        const newFav = { id: Date.now().toString(), name, items };
+        const favorites = [...(user.favorites || []), newFav];
+        updateUserProfile({ favorites });
+    }, [user, updateUserProfile]);
+
+    const removeFavorite = useCallback((id) => {
+        const favorites = (user.favorites || []).filter(f => f.id !== id);
+        updateUserProfile({ favorites });
+    }, [user, updateUserProfile]);
+
+    const toggleFavoriteItem = useCallback((item) => {
+        if (!user) return;
+        const currentItems = user.favoriteItems || [];
+        const exists = currentItems.find(i => i.id === item.id);
+        
+        let newItems;
+        if (exists) {
+            newItems = currentItems.filter(i => i.id !== item.id);
+        } else {
+            newItems = [...currentItems, item];
+        }
+        updateUserProfile({ favoriteItems: newItems });
+    }, [user, updateUserProfile]);
+
+    const addToOrderHistory = useCallback((orderData) => {
+        const orderHistory = [{ ...orderData, historyId: Date.now().toString(), orderDate: new Date().toISOString() }, ...(user.orderHistory || [])];
+        updateUserProfile({ orderHistory });
+    }, [user, updateUserProfile]);
+
+    const getRecommendations = useCallback(() => {
+        if (!user || !user.orderHistory || user.orderHistory.length === 0) return [];
+        const itemFreq = {};
+        const itemMap = {};
+        user.orderHistory.forEach(order => {
+            order.items.forEach(item => {
+                itemFreq[item.id] = (itemFreq[item.id] || 0) + item.quantity;
+                if (!itemMap[item.id]) itemMap[item.id] = item;
+            });
+        });
+        const sortedIds = Object.entries(itemFreq).sort((a, b) => b[1] - a[1]).slice(0, 4).map(entry => entry[0]);
+        return sortedIds.map(id => itemMap[id]);
+    }, [user]);
 
     return (
         <AuthContext.Provider
@@ -136,6 +228,11 @@ export function AuthProvider({ children }) {
                 loginWithGoogle,
                 logout,
                 isValidUniversityEmail,
+                addFavorite,
+                removeFavorite,
+                toggleFavoriteItem,
+                addToOrderHistory,
+                getRecommendations,
             }}
         >
             {children}
