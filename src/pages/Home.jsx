@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
+import ScrollReveal from '../components/ScrollReveal';
 import './Home.css';
 
 const features = [
@@ -140,6 +141,22 @@ export default function Home() {
                 <div className="hero-scroll-indicator">
                     <span>Scroll down</span>
                     <div className="scroll-arrow">↓</div>
+                </div>
+            </section>
+
+            {/* Scroll Reveal Quote */}
+            <section className="scroll-reveal-section" style={{ padding: '4rem 0', display: 'flex', justifyContent: 'center', textAlign: 'center', overflow: 'hidden' }}>
+                <div className="container" style={{ maxWidth: '800px' }}>
+                    <ScrollReveal
+                        baseOpacity={0.1}
+                        enableBlur
+                        baseRotation={3}
+                        blurStrength={4}
+                    >
+                        When does a man die? When he is hit by a bullet? No! When he suffers a disease?
+                        No! When he ate a soup made out of a poisonous mushroom?
+                        No! A man dies when he is forgotten!
+                    </ScrollReveal>
                 </div>
             </section>
 
