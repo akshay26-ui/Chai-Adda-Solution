@@ -66,8 +66,8 @@ export default function Auth() {
         const centerY = rect.top + rect.height / 2;
         const x = (e.clientX - centerX) / (rect.width / 2);
         const y = (e.clientY - centerY) / (rect.height / 2);
-        tiltRef.current.targetX = x * 6;
-        tiltRef.current.targetY = y * -6;
+        tiltRef.current.targetX = x * 3;
+        tiltRef.current.targetY = y * -3;
         tiltRef.current.shineX = ((e.clientX - rect.left) / rect.width) * 100;
         tiltRef.current.shineY = ((e.clientY - rect.top) / rect.height) * 100;
     };

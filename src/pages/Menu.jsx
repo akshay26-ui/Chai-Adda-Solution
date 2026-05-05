@@ -5,6 +5,7 @@ import { useToast } from '../context/ToastContext';
 import { useStock } from '../context/StockContext';
 import { useAuth } from '../context/AuthContext';
 import { menuData, categories } from '../data/menuData';
+import SpotlightCard from '../components/SpotlightCard';
 import './Menu.css';
 
 export default function Menu() {
@@ -109,36 +110,37 @@ export default function Menu() {
                                         return (
                                             <motion.div
                                                 key={item.id}
-                                                className={`menu-card cursor-target ${outOfStock ? 'out-of-stock' : ''}`}
+                                                className="menu-card-motion-wrapper"
                                                 initial={{ opacity: 0, y: 20 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ duration: 0.3, delay: index * 0.03 }}
                                                 whileHover={{ y: outOfStock ? 0 : -4 }}
                                                 layout
-                                                style={{ position: 'relative' }}
+                                                style={{ position: 'relative', height: '100%' }}
                                             >
-                                                {isAuthenticated && (
-                                                    <button 
-                                                        className="favorite-item-btn cursor-target"
-                                                        onClick={(e) => { 
-                                                            e.stopPropagation(); 
-                                                            toggleFavoriteItem(item);
-                                                            addToast((user?.favoriteItems || []).some(i => i.id === item.id) ? 'Removed from favorites' : 'Added to favorites', 'success');
-                                                        }}
-                                                        style={{ 
-                                                            position: 'absolute', top: '10px', right: '10px', zIndex: 10, 
-                                                            background: 'rgba(0,0,0,0.4)', border: 'none', borderRadius: '50%', 
-                                                            width: '32px', height: '32px', display: 'flex', alignItems: 'center', 
-                                                            justifyContent: 'center', fontSize: '1.2rem', cursor: 'pointer',
-                                                            color: (user?.favoriteItems || []).some(i => i.id === item.id) ? 'gold' : 'rgba(255,255,255,0.7)',
-                                                            backdropFilter: 'blur(4px)'
-                                                        }}
-                                                    >
-                                                        {(user?.favoriteItems || []).some(i => i.id === item.id) ? '★' : '☆'}
-                                                    </button>
-                                                )}
-                                                <div className="card-image-bg">
-                                                {item.image ? (
+                                                <SpotlightCard className={`menu-card cursor-target ${outOfStock ? 'out-of-stock' : ''}`} spotlightColor="rgba(232, 101, 43, 0.2)">
+                                                    {isAuthenticated && (
+                                                        <button 
+                                                            className="favorite-item-btn cursor-target"
+                                                            onClick={(e) => { 
+                                                                e.stopPropagation(); 
+                                                                toggleFavoriteItem(item);
+                                                                addToast((user?.favoriteItems || []).some(i => i.id === item.id) ? 'Removed from favorites' : 'Added to favorites', 'success');
+                                                            }}
+                                                            style={{ 
+                                                                position: 'absolute', top: '10px', right: '10px', zIndex: 10, 
+                                                                background: 'rgba(0,0,0,0.4)', border: 'none', borderRadius: '50%', 
+                                                                width: '32px', height: '32px', display: 'flex', alignItems: 'center', 
+                                                                justifyContent: 'center', fontSize: '1.2rem', cursor: 'pointer',
+                                                                color: (user?.favoriteItems || []).some(i => i.id === item.id) ? 'gold' : 'rgba(255,255,255,0.7)',
+                                                                backdropFilter: 'blur(4px)'
+                                                            }}
+                                                        >
+                                                            {(user?.favoriteItems || []).some(i => i.id === item.id) ? '★' : '☆'}
+                                                        </button>
+                                                    )}
+                                                    <div className="card-image-bg">
+                                                    {item.image ? (
                                                     <img src={item.image} alt={item.name} loading="lazy" />
                                                 ) : (
                                                     <span className="card-emoji-fallback">{item.emoji}</span>
@@ -174,6 +176,7 @@ export default function Menu() {
                                                         </button>
                                                     </div>
                                                 </div>
+                                                </SpotlightCard>
                                             </motion.div>
                                         );
                                     })}
