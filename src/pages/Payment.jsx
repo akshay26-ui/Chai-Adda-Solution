@@ -5,12 +5,14 @@ import { QRCodeSVG } from 'qrcode.react';
 import { useCart } from '../context/CartContext';
 import { useOrders } from '../context/OrderContext';
 import { useToast } from '../context/ToastContext';
+import { useStock } from '../context/StockContext';
 import './Payment.css';
 
 export default function Payment() {
     const { items, totalPrice, clearCart, scheduleInfo } = useCart();
     const { addOrder } = useOrders();
     const { addToast } = useToast();
+    const { decrementStock } = useStock();
     const navigate = useNavigate();
     const [stage, setStage] = useState('qr'); // qr, processing, success
     const [progress, setProgress] = useState(0);
@@ -50,6 +52,10 @@ export default function Payment() {
         if (progress >= 100 && stage === 'processing') {
             setTimeout(() => {
                 setStage('success');
+                // Decrement stock for each item in the order
+                savedItemsRef.current.forEach((item) => {
+                    decrementStock(item.id, item.quantity);
+                });
                 addOrder(items, totalPrice, scheduleInfo);
                 clearCart();
                 addToast(scheduleInfo?.isPartyOrder ? 'Party order scheduled! 🎉' : 'Payment successful! 🎉', 'success');

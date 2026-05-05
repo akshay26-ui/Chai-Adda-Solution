@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
+import { useStock } from '../context/StockContext';
 import { menuData, categories } from '../data/menuData';
 import './Menu.css';
 
@@ -10,6 +11,7 @@ export default function Menu() {
     const [searchQuery, setSearchQuery] = useState('');
     const { addItem, items: cartItems } = useCart();
     const { addToast } = useToast();
+    const { isInStock, getStock } = useStock();
 
     const currentItems = useMemo(() => {
         const items = menuData[activeCategory]?.items || [];
@@ -25,6 +27,10 @@ export default function Menu() {
     };
 
     const handleAddToCart = (item) => {
+        if (!isInStock(item.id)) {
+            addToast(`${item.name} is out of stock!`, 'error');
+            return;
+        }
         addItem(item);
         addToast(`${item.name} added to cart!`, 'success');
     };
@@ -96,14 +102,16 @@ export default function Menu() {
                                 <div className="items-grid">
                                     {currentItems.map((item, index) => {
                                         const qty = getCartQuantity(item.id);
+                                        const outOfStock = !isInStock(item.id);
+                                        const stockQty = getStock(item.id);
                                         return (
                                             <motion.div
                                                 key={item.id}
-                                                className="menu-card cursor-target"
+                                                className={`menu-card cursor-target ${outOfStock ? 'out-of-stock' : ''}`}
                                                 initial={{ opacity: 0, y: 20 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ duration: 0.3, delay: index * 0.03 }}
-                                                whileHover={{ y: -4 }}
+                                                whileHover={{ y: outOfStock ? 0 : -4 }}
                                                 layout
                                             >
                                                 <div className="card-image-bg">
@@ -112,19 +120,30 @@ export default function Menu() {
                                                 ) : (
                                                     <span className="card-emoji-fallback">{item.emoji}</span>
                                                 )}
+                                                {outOfStock && (
+                                                    <div className="oos-overlay">
+                                                        <span className="oos-badge">Out of Stock</span>
+                                                    </div>
+                                                )}
                                             </div>
                                                 <div className="card-content">
                                                     <h3 className="card-name">{item.name}</h3>
                                                     {item.size && (
                                                         <span className="card-size">{item.size}</span>
                                                     )}
+                                                    {!outOfStock && stockQty <= 5 && (
+                                                        <span className="card-low-stock">Only {stockQty} left!</span>
+                                                    )}
                                                     <div className="card-bottom">
                                                         <span className="card-price">₹{item.price}</span>
                                                         <button
-                                                            className={`add-btn ${qty > 0 ? 'added' : ''}`}
+                                                            className={`add-btn ${qty > 0 ? 'added' : ''} ${outOfStock ? 'disabled' : ''}`}
                                                             onClick={() => handleAddToCart(item)}
+                                                            disabled={outOfStock}
                                                         >
-                                                            {qty > 0 ? (
+                                                            {outOfStock ? (
+                                                                <span>Unavailable</span>
+                                                            ) : qty > 0 ? (
                                                                 <span className="add-btn-qty">{qty} ✓</span>
                                                             ) : (
                                                                 <span>Add +</span>
@@ -144,3 +163,4 @@ export default function Menu() {
         </div>
     );
 }
+

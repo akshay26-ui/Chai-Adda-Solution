@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOrders } from '../context/OrderContext';
 import { useToast } from '../context/ToastContext';
+import { useStock } from '../context/StockContext';
+import StockManagement from './StockManagement';
 import './Admin.css';
 
 const statusConfig = {
@@ -13,10 +15,12 @@ const statusConfig = {
 export default function Admin() {
     const { orders, updateOrderStatus, removeOrder } = useOrders();
     const { addToast } = useToast();
+    const { outOfStockItems } = useStock();
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [password, setPassword] = useState('');
     const [loginError, setLoginError] = useState('');
     const [filter, setFilter] = useState('all');
+    const [activeTab, setActiveTab] = useState('orders');
 
     const handleLogin = (e) => {
         e.preventDefault();
@@ -107,7 +111,7 @@ export default function Admin() {
                 >
                     <div>
                         <h1>📊 Admin Dashboard</h1>
-                        <p>Manage and track all incoming orders</p>
+                        <p>Manage orders and inventory</p>
                     </div>
                     <button
                         className="btn btn-ghost btn-sm"
@@ -117,147 +121,200 @@ export default function Admin() {
                     </button>
                 </motion.div>
 
-                {/* Stats */}
+                {/* Admin Tabs */}
                 <motion.div
-                    className="admin-stats"
+                    className="admin-tabs"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
+                    transition={{ delay: 0.05 }}
                 >
-                    <div className="stat-card glass">
-                        <span className="stat-icon">📦</span>
-                        <div className="stat-data">
-                            <span className="stat-num">{counts.total}</span>
-                            <span className="stat-lbl">Total Orders</span>
-                        </div>
-                    </div>
-                    <div className="stat-card glass" style={{ borderTopColor: 'var(--clr-received)' }}>
-                        <span className="stat-icon">🟡</span>
-                        <div className="stat-data">
-                            <span className="stat-num">{counts.received}</span>
-                            <span className="stat-lbl">Received</span>
-                        </div>
-                    </div>
-                    <div className="stat-card glass" style={{ borderTopColor: 'var(--clr-preparing)' }}>
-                        <span className="stat-icon">🟠</span>
-                        <div className="stat-data">
-                            <span className="stat-num">{counts.preparing}</span>
-                            <span className="stat-lbl">Preparing</span>
-                        </div>
-                    </div>
-                    <div className="stat-card glass" style={{ borderTopColor: 'var(--clr-serving)' }}>
-                        <span className="stat-icon">🟢</span>
-                        <div className="stat-data">
-                            <span className="stat-num">{counts.serving}</span>
-                            <span className="stat-lbl">Serving</span>
-                        </div>
-                    </div>
-                    <div className="stat-card glass" style={{ borderTopColor: 'var(--clr-accent)' }}>
-                        <span className="stat-icon">🎉</span>
-                        <div className="stat-data">
-                            <span className="stat-num">{counts.scheduled}</span>
-                            <span className="stat-lbl">Scheduled</span>
-                        </div>
-                    </div>
+                    <button
+                        className={`admin-tab cursor-target ${activeTab === 'orders' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('orders')}
+                    >
+                        <span className="admin-tab-icon">🍽️</span>
+                        <span>Orders</span>
+                        {orders.length > 0 && (
+                            <span className="admin-tab-badge">{orders.length}</span>
+                        )}
+                    </button>
+                    <button
+                        className={`admin-tab cursor-target ${activeTab === 'stock' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('stock')}
+                    >
+                        <span className="admin-tab-icon">📦</span>
+                        <span>Stock</span>
+                        {outOfStockItems.length > 0 && (
+                            <span className="admin-tab-badge danger">{outOfStockItems.length}</span>
+                        )}
+                    </button>
                 </motion.div>
 
-                {/* Filters */}
-                <div className="admin-filters">
-                    {['all', 'received', 'preparing', 'serving', 'scheduled'].map((f) => (
-                        <button
-                            key={f}
-                            className={`filter-btn cursor-target ${filter === f ? 'active' : ''}`}
-                            onClick={() => setFilter(f)}
+                {/* Tab Content */}
+                <AnimatePresence mode="wait">
+                    {activeTab === 'orders' ? (
+                        <motion.div
+                            key="orders"
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 20 }}
+                            transition={{ duration: 0.25 }}
                         >
-                            {f === 'all' ? '📋 All' : f === 'scheduled' ? '🎉 Scheduled' : `${statusConfig[f].icon} ${statusConfig[f].label}`}
-                        </button>
-                    ))}
-                </div>
+                            {/* Stats */}
+                            <motion.div
+                                className="admin-stats"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.1 }}
+                            >
+                                <div className="stat-card glass">
+                                    <span className="stat-icon">📦</span>
+                                    <div className="stat-data">
+                                        <span className="stat-num">{counts.total}</span>
+                                        <span className="stat-lbl">Total Orders</span>
+                                    </div>
+                                </div>
+                                <div className="stat-card glass" style={{ borderTopColor: 'var(--clr-received)' }}>
+                                    <span className="stat-icon">🟡</span>
+                                    <div className="stat-data">
+                                        <span className="stat-num">{counts.received}</span>
+                                        <span className="stat-lbl">Received</span>
+                                    </div>
+                                </div>
+                                <div className="stat-card glass" style={{ borderTopColor: 'var(--clr-preparing)' }}>
+                                    <span className="stat-icon">🟠</span>
+                                    <div className="stat-data">
+                                        <span className="stat-num">{counts.preparing}</span>
+                                        <span className="stat-lbl">Preparing</span>
+                                    </div>
+                                </div>
+                                <div className="stat-card glass" style={{ borderTopColor: 'var(--clr-serving)' }}>
+                                    <span className="stat-icon">🟢</span>
+                                    <div className="stat-data">
+                                        <span className="stat-num">{counts.serving}</span>
+                                        <span className="stat-lbl">Serving</span>
+                                    </div>
+                                </div>
+                                <div className="stat-card glass" style={{ borderTopColor: 'var(--clr-accent)' }}>
+                                    <span className="stat-icon">🎉</span>
+                                    <div className="stat-data">
+                                        <span className="stat-num">{counts.scheduled}</span>
+                                        <span className="stat-lbl">Scheduled</span>
+                                    </div>
+                                </div>
+                            </motion.div>
 
-                {/* Orders */}
-                <div className="admin-orders">
-                    {filteredOrders.length === 0 ? (
-                        <div className="no-orders">
-                            <span className="no-orders-icon">📭</span>
-                            <h3>No orders{filter !== 'all' ? ` with status "${filter}"` : ''}</h3>
-                            <p>Orders will appear here when customers place them</p>
-                        </div>
-                    ) : (
-                        <AnimatePresence>
-                            {filteredOrders.map((order) => {
-                                const config = statusConfig[order.status];
-                                return (
-                                    <motion.div
-                                        key={order.id}
-                                        className="order-card glass"
-                                        layout
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, x: -100 }}
+                            {/* Filters */}
+                            <div className="admin-filters">
+                                {['all', 'received', 'preparing', 'serving', 'scheduled'].map((f) => (
+                                    <button
+                                        key={f}
+                                        className={`filter-btn cursor-target ${filter === f ? 'active' : ''}`}
+                                        onClick={() => setFilter(f)}
                                     >
-                                        <div className="order-card-header">
-                                            <div className="order-token-info">
-                                                <span className="order-token">#{order.token}</span>
-                                                <span className="order-time">
-                                                    {new Date(order.timestamp).toLocaleTimeString()}
-                                                </span>
-                                            </div>
-                                            <span
-                                                className="status-chip"
-                                                style={{
-                                                    background: `${config.color}20`,
-                                                    color: config.color,
-                                                    borderColor: `${config.color}40`,
-                                                }}
-                                            >
-                                                {config.icon} {config.label}
-                                            </span>
-                                        </div>
+                                        {f === 'all' ? '📋 All' : f === 'scheduled' ? '🎉 Scheduled' : `${statusConfig[f].icon} ${statusConfig[f].label}`}
+                                    </button>
+                                ))}
+                            </div>
 
-                                        {order.scheduleInfo?.isPartyOrder && (
-                                            <div className="order-schedule-banner">
-                                                <span className="order-schedule-badge">🎉 Party Order</span>
-                                                <span className="order-schedule-detail">📅 {order.scheduleInfo.date} · {order.scheduleInfo.timeSlot}</span>
-                                                <span className="order-schedule-detail">👤 {order.scheduleInfo.name} · {order.scheduleInfo.phone}</span>
-                                            </div>
-                                        )}
+                            {/* Orders */}
+                            <div className="admin-orders">
+                                {filteredOrders.length === 0 ? (
+                                    <div className="no-orders">
+                                        <span className="no-orders-icon">📭</span>
+                                        <h3>No orders{filter !== 'all' ? ` with status "${filter}"` : ''}</h3>
+                                        <p>Orders will appear here when customers place them</p>
+                                    </div>
+                                ) : (
+                                    <AnimatePresence>
+                                        {filteredOrders.map((order) => {
+                                            const config = statusConfig[order.status];
+                                            return (
+                                                <motion.div
+                                                    key={order.id}
+                                                    className="order-card glass"
+                                                    layout
+                                                    initial={{ opacity: 0, y: 20 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, x: -100 }}
+                                                >
+                                                    <div className="order-card-header">
+                                                        <div className="order-token-info">
+                                                            <span className="order-token">#{order.token}</span>
+                                                            <span className="order-time">
+                                                                {new Date(order.timestamp).toLocaleTimeString()}
+                                                            </span>
+                                                        </div>
+                                                        <span
+                                                            className="status-chip"
+                                                            style={{
+                                                                background: `${config.color}20`,
+                                                                color: config.color,
+                                                                borderColor: `${config.color}40`,
+                                                            }}
+                                                        >
+                                                            {config.icon} {config.label}
+                                                        </span>
+                                                    </div>
 
-                                        <div className="order-card-items">
-                                            {order.items.map((item) => (
-                                                <div key={item.id} className="order-card-item">
-                                                    <span>{item.emoji} {item.name}</span>
-                                                    <span className="item-qty">×{item.quantity}</span>
-                                                </div>
-                                            ))}
-                                        </div>
+                                                    {order.scheduleInfo?.isPartyOrder && (
+                                                        <div className="order-schedule-banner">
+                                                            <span className="order-schedule-badge">🎉 Party Order</span>
+                                                            <span className="order-schedule-detail">📅 {order.scheduleInfo.date} · {order.scheduleInfo.timeSlot}</span>
+                                                            <span className="order-schedule-detail">👤 {order.scheduleInfo.name} · {order.scheduleInfo.phone}</span>
+                                                        </div>
+                                                    )}
 
-                                        <div className="order-card-footer">
-                                            <span className="order-card-total">Total: ₹{order.totalPrice}</span>
-                                            <div className="order-actions">
-                                                {config.next ? (
-                                                    <button
-                                                        className="btn btn-primary btn-sm cursor-target"
-                                                        onClick={() => handleStatusUpdate(order.id, config.next)}
-                                                    >
-                                                        Move to {statusConfig[config.next].label} {statusConfig[config.next].icon}
-                                                    </button>
-                                                ) : (
-                                                    <button
-                                                        className="btn btn-sm complete-btn cursor-target"
-                                                        onClick={() => handleComplete(order.id)}
-                                                    >
-                                                        ✅ Complete Order
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </motion.div>
-                                );
-                            })}
-                        </AnimatePresence>
+                                                    <div className="order-card-items">
+                                                        {order.items.map((item) => (
+                                                            <div key={item.id} className="order-card-item">
+                                                                <span>{item.emoji} {item.name}</span>
+                                                                <span className="item-qty">×{item.quantity}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+
+                                                    <div className="order-card-footer">
+                                                        <span className="order-card-total">Total: ₹{order.totalPrice}</span>
+                                                        <div className="order-actions">
+                                                            {config.next ? (
+                                                                <button
+                                                                    className="btn btn-primary btn-sm cursor-target"
+                                                                    onClick={() => handleStatusUpdate(order.id, config.next)}
+                                                                >
+                                                                    Move to {statusConfig[config.next].label} {statusConfig[config.next].icon}
+                                                                </button>
+                                                            ) : (
+                                                                <button
+                                                                    className="btn btn-sm complete-btn cursor-target"
+                                                                    onClick={() => handleComplete(order.id)}
+                                                                >
+                                                                    ✅ Complete Order
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            );
+                                        })}
+                                    </AnimatePresence>
+                                )}
+                            </div>
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key="stock"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            transition={{ duration: 0.25 }}
+                        >
+                            <StockManagement />
+                        </motion.div>
                     )}
-                </div>
+                </AnimatePresence>
             </div>
         </div>
     );
 }
+

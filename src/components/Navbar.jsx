@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import './Navbar.css';
 
 export default function Navbar() {
     const { totalItems } = useCart();
+    const { isAuthenticated, user, logout } = useAuth();
     const location = useLocation();
+    const navigate = useNavigate();
     const [scrolled, setScrolled] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -27,6 +30,11 @@ export default function Navbar() {
         { path: '/party-order', label: 'Party Order', icon: '🎉' },
         { path: '/admin', label: 'Admin', icon: '📊' },
     ];
+
+    const handleLogout = () => {
+        logout();
+        navigate('/');
+    };
 
     return (
         <nav className={`navbar ${scrolled ? 'navbar-scrolled' : ''}`}>
@@ -60,6 +68,31 @@ export default function Navbar() {
                             )}
                         </Link>
                     ))}
+
+                    {/* Auth Section */}
+                    {isAuthenticated ? (
+                        <div className="nav-user-section">
+                            <div className="nav-user-info">
+                                <span className="nav-user-avatar">{user.avatar}</span>
+                                <span className="nav-user-name">{user.name?.split(' ')[0]}</span>
+                            </div>
+                            <button
+                                className="nav-logout-btn cursor-target"
+                                onClick={handleLogout}
+                                title="Logout"
+                            >
+                                ↗
+                            </button>
+                        </div>
+                    ) : (
+                        <Link
+                            to="/auth"
+                            className={`nav-link nav-login-link cursor-target ${location.pathname === '/auth' ? 'active' : ''}`}
+                        >
+                            <span className="nav-icon">👤</span>
+                            <span>Login</span>
+                        </Link>
+                    )}
                 </div>
 
                 <button
@@ -77,3 +110,4 @@ export default function Navbar() {
         </nav>
     );
 }
+

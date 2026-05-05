@@ -1,16 +1,28 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
+import { useAuth } from '../context/AuthContext';
 import './Cart.css';
 
 export default function Cart() {
     const { items, removeItem, updateQuantity, totalPrice, totalItems, clearCart } = useCart();
     const { addToast } = useToast();
+    const { isAuthenticated, user } = useAuth();
+    const navigate = useNavigate();
 
     const handleRemove = (item) => {
         removeItem(item.id);
         addToast(`${item.name} removed from cart`, 'info');
+    };
+
+    const handleProceedToPayment = () => {
+        if (!isAuthenticated) {
+            addToast('Please login to place your order', 'warning');
+            navigate('/auth', { state: { from: '/cart' } });
+            return;
+        }
+        navigate('/payment');
     };
 
     return (
@@ -128,9 +140,25 @@ export default function Cart() {
                                 </div>
                             </div>
                             <p className="summary-note">All prices include MRP as displayed</p>
-                            <Link to="/payment" className="btn btn-primary btn-lg summary-btn cursor-target">
-                                Proceed to Payment →
-                            </Link>
+
+                            {isAuthenticated ? (
+                                <button
+                                    className="btn btn-primary btn-lg summary-btn cursor-target"
+                                    onClick={handleProceedToPayment}
+                                >
+                                    Proceed to Payment →
+                                </button>
+                            ) : (
+                                <div className="cart-auth-gate">
+                                    <button
+                                        className="btn btn-primary btn-lg summary-btn cursor-target"
+                                        onClick={handleProceedToPayment}
+                                    >
+                                        Login to Place Order →
+                                    </button>
+                                    <p className="cart-auth-note">🔒 Login required to place orders</p>
+                                </div>
+                            )}
                         </motion.div>
                     </div>
                 )}
@@ -138,3 +166,4 @@ export default function Cart() {
         </div>
     );
 }
+

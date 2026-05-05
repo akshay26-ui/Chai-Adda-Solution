@@ -230,3 +230,14 @@
         position: static;
     }
 }
+
+/* Auth Gate */
+.cart-auth-gate {
+    text-align: center;
+}
+
+.cart-auth-note {
+    font-size: 0.78rem;
+    color: var(--clr-text-muted);
+    margin-top: 0.75rem;
+}
