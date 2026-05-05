@@ -87,6 +87,78 @@
     margin-top: 0.25rem;
 }
 
+/* Admin Tabs */
+.admin-tabs {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 1.75rem;
+    background: var(--clr-bg-card);
+    border-radius: var(--radius-lg);
+    padding: 0.3rem;
+    border: 1px solid var(--clr-border);
+}
+
+.admin-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--clr-text-secondary);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    position: relative;
+}
+
+.admin-tab:hover {
+    color: var(--clr-text);
+    background: rgba(232, 101, 43, 0.05);
+}
+
+.admin-tab.active {
+    background: linear-gradient(135deg, var(--clr-primary), var(--clr-primary-dark));
+    color: white;
+    box-shadow: 0 4px 15px rgba(232, 101, 43, 0.3);
+}
+
+.admin-tab-icon {
+    font-size: 1.1rem;
+}
+
+.admin-tab-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, 0.2);
+    color: inherit;
+}
+
+.admin-tab:not(.active) .admin-tab-badge {
+    background: var(--clr-primary);
+    color: white;
+}
+
+.admin-tab-badge.danger {
+    background: var(--clr-error);
+    color: white;
+}
+
+.admin-tab.active .admin-tab-badge.danger {
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+}
+
 /* Stats */
 .admin-stats {
     display: grid;
